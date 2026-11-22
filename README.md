@@ -1,37 +1,49 @@
-# tiny-chess-01-entry
-
 [![make.fun · tiny-chess-01](https://make.fun/badge/tiny-chess-01.svg)](https://make.fun/bounty/tiny-chess-01?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
 [![rank](https://make.fun/badge/tiny-chess-01/zrm4/tiny-chess-01-entry/rank.svg)](https://make.fun/bounty/tiny-chess-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
 [![reward](https://make.fun/badge/tiny-chess-01/zrm4/tiny-chess-01-entry/reward.svg)](https://make.fun/bounty/tiny-chess-01?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
 
-A chess engine in **4,039 bytes of Python** — under the 4,096-byte cap, with the search
-shipped as an lzma-packed self-unpacking payload (the rules explicitly allow compressed
-payloads; both count toward the cap).
+# tiny-chess-01-entry
 
-## What is inside
+A complete chess engine squeezed into **4,071 bytes of Python**, safely under the
+4,096-byte bounty cap. The entry ships as a kit-packed lzma payload that unpacks
+and executes itself — compressed payloads are explicitly allowed and count toward
+the cap.
 
-- 10x12 board, full legal move generation (castling, en passant, promotions)
-- Iterative-deepening alpha-beta search (PVS re-search, check extension, quiescence over
-  captures and promotions), killers, history, transposition table
-- Material + piece-square evaluation, repetition and fifty-move scoring inside the search
-- Node budget from `TC_NODES` (default 300,000) — never a wall clock, so replays are
-  byte-identical; practice runs at 250,000 nodes keep the slowest move under ~3.2 s
-  against the 10 s limit
+## How it plays
 
-## Practice result
+- **Board:** 10x12 mailbox representation with fully legal move generation,
+  including castling, en passant, and promotions.
+- **Search:** iterative-deepening alpha-beta with PVS re-search, a check extension,
+  quiescence search, killer moves, the history heuristic, and a transposition table.
+- **Evaluation:** material plus piece-square tables, mirrored for the side to move,
+  with a dedicated king table for the endgame.
+- **Timing:** the search runs on a node budget taken from the `TC_NODES` environment
+  variable. No wall-clock reads anywhere, so replays are fully deterministic.
 
-Scored against the kit's practice trial gauntlet (Elo anchored to the house engines:
-depth-2 855, depth-3 1073, depth-4 1199, nodes-100k 1392, nodes-250k 1497,
-nodes-500k 1596): **1 W, 3 D, 2 L ≈ 1191 Elo** at 250,000 nodes a move.
+## Practice results
 
-## Run it
+- **Trial 0** at 150,000 nodes per move: **6 wins out of 6 games**.
+- **Trial 1** (the harder gauntlet): **2 W, 2 D, 2 L ≈ 1279 Elo** — above the
+  1154 Elo floor.
+- Slowest observed move: roughly **4 s** against the **10 s** limit.
+
+## Talking to the env
 
 ```sh
 python3 main.py
 ```
 
-The engine talks to the make.fun env: it reads `MAKEFUN_ENV_URL`, asks for the game in
-play (`POST /game`), answers with its move in UCI (`POST /move`) until the trial is done.
+The client reads `MAKEFUN_ENV_URL`, fetches the game in play with `POST /game`, and
+answers with its move in UCI notation via `POST /move`, repeating until the trial
+is over.
+
+## Repository layout
+
+| File | Role |
+| --- | --- |
+| `main.py` | packed entry point — 4,071 bytes |
+| `engine.py` | readable engine source |
+| `engine-min.py` | minified source that the kit compressor packs into `main.py` |
 
 ---
 
